@@ -9,7 +9,7 @@ mydb = pymysql.connect(
 )
 
 mycursor = mydb.cursor()
-
+serial_number = 0
 option = int(input("Select an option 1.Customer\n2.Admin"))
 total_list=[]
 amount = 0
@@ -22,7 +22,7 @@ if(option==1):
     for item in items:
         print(item)
 
-while 1:
+while option==1:
     select_item_id = int(input("Enter Item_Id"))
     mycursor.execute("select Item_Id from Menu")
     Item_Id = mycursor.fetchall()
@@ -55,7 +55,7 @@ while 1:
     
     mycursor.execute("select * from Menu where Item_ID ='%d'"%(select_item_id))
     select_list = list(mycursor.fetchall())
-    print(select_list)
+    #print(select_list)
     print(select_list[0][1],select_list[0][2])
     amount = amount + int(select_list[0][2])*select_quantity
     k=k+1
@@ -66,29 +66,31 @@ while 1:
     choice = int(input("Do you eant to continue ?\n1.Yes\n2.Done"))
     if choice==1:
         continue
+    
     if choice ==2:
+        print("Selected Items:")
+        for x in total_list:
+            print(x)
         print("The Total Amount is :",amount)
-        print("Do you want confirm order ?\n1.Confirm\n2.Edit")
-        con =1
+        con =int(input("Do you want confirm order ?\n1.Confirm\n2.Edit"))
     if con==1:
+        serial_number=serial_number+1
+        p=str(serial_number)
+        print("order number ",p.zfill(4))
+        mycursor.execute("Insert into bill (item_id,total_amt) values (%d,%d)"%(select_item_id,amount))
+        #mydb.commit()
         break
     elif con==2:
         continue
-   
 
-i=0
-print(k)
-for i in  range(k):
-    for x in total_list: 
-        print(x[i][0])
-        item = x[i][1]
-        price = int(x[i][2])
-        sel_q = int(x[i][3])
-        print(item,"\t",sel_q,"\t",price)
-        if(i>k):
-            break
+if option == 2:
+    passw = input("Enter password")
+    if passw == "password":
+        print("login Successfull")
+        order_no = int(input("Enter order number: "))
+        mycursor.execute("select * from bill where serial_id ='%d'"%(order_no))
+        select_list = list(mycursor.fetchall())
+        print(select_list)
 
-print("The Total Amount is :",amount)
-print("Do you want confirm order ?\n1.Confirm\n2.Edit")
 
 
