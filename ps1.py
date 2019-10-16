@@ -1,16 +1,19 @@
 #!/usr/bin/python3
 import pymysql
-
+import getpass
+# Open database connection
 mydb = pymysql.connect(
   host="localhost",
   user="root",
   passwd="root",
   database="billing_mgmt"
 )
-
+# prepare a cursor object using cursor() method
 mycursor = mydb.cursor()
 serial_number = 0
-option = int(input("Select an option 1.Customer\n2.Admin"))
+
+#Menu for customer
+option = int(input("Select an option 1.Customer\n2.Admin\n"))
 total_list=[]
 amount = 0
 k=0
@@ -33,6 +36,7 @@ while option==1:
         if num == select_item_id:
             flag=1
             break
+    #Checking If item exists
     if flag == 1:
         print("Item Available")
     if flag==2:
@@ -42,6 +46,7 @@ while option==1:
 
     select_quantity = int(input("Enter Quantity of Selected Item"))
     k = (select_item_id)
+    # execute SQL query using execute() method.
     mycursor.execute("select Available_quantity from Menu where Item_ID ='%d'"%(select_item_id))
     select_row = list(mycursor.fetchone())
     qua_flag=1
@@ -62,8 +67,9 @@ while option==1:
     total_list.append(select_list)
     new_ava_qua = select_row[0] - select_quantity
     print(new_ava_qua)
+    # execute SQL query using execute() method.
     mycursor.execute("update Menu set Available_quantity = '%d' where Item_ID ='%d'"%(new_ava_qua,select_item_id))
-    choice = int(input("Do you eant to continue ?\n1.Yes\n2.Done"))
+    choice = int(input("Do you eant to continue ?\n1.Yes\n2.Done\n"))
     if choice==1:
         continue
     
@@ -72,25 +78,36 @@ while option==1:
         for x in total_list:
             print(x)
         print("The Total Amount is :",amount)
-        con =int(input("Do you want confirm order ?\n1.Confirm\n2.Edit"))
+        con =int(input("Do you want confirm order ?\n1.Confirm\n2.Edit\n"))
+    #Confirmation Block
     if con==1:
         serial_number=serial_number+1
         p=str(serial_number)
         print("order number ",p.zfill(4))
-        mycursor.execute("Insert into bill (item_id,total_amt) values (%d,%d)"%(select_item_id,amount))
+        # execute SQL query using execute() method.
+        mycursor.execute("Insert into bill (item_id,total_amt,nmae) values (%d,%d,'%s')"%(select_item_id,amount,cust_name))
         #mydb.commit()
         break
     elif con==2:
         continue
-
+#Admin Block
 if option == 2:
-    passw = input("Enter password")
+    print("Enter password")
+    passw = getpass.getpass()
     if passw == "password":
         print("login Successfull")
         order_no = int(input("Enter order number: "))
+        # execute SQL query using execute() method.
         mycursor.execute("select * from bill where serial_id ='%d'"%(order_no))
         select_list = list(mycursor.fetchall())
         print(select_list)
 
+days = input("Enter number of days\n")
+mycursor.execute("select time from bill where time between '2019-10-15' and '2019-10-10'")
+date = list(mycursor.fetchall())
+#Calculating total amount in days
+mycursor.execute("select SUM(total_amt) from bill")
+t_a = list(mycursor.fetchall())
+print("Total amount in last", days,"day is",t_a[0])
 
 
